@@ -27,8 +27,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "GH. | Fullstack Developer",
-    template: "%s | GH.",
+    default: "Gilang Happy. | Fullstack Developer",
+    template: "%s | Gilang Happy.",
   },
   description:
     "Personal portfolio of Gilang — a Fullstack Developer building modern, performant, and scalable web applications with Next.js, React, and TypeScript.",
@@ -47,8 +47,8 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "GH. Portfolio",
-    title: "GH. | Fullstack Developer",
+    siteName: "Gilang Happy. Portfolio",
+    title: "Gilang Happy. | Fullstack Developer",
     description:
       "Personal portfolio of Gilang — a Fullstack Developer building modern, performant, and scalable web applications.",
     images: [
@@ -56,13 +56,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "GH. | Fullstack Developer Portfolio",
+        alt: "Gilang Happy. | Fullstack Developer Portfolio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GH. | Fullstack Developer",
+    title: "Gilang Happy. | Fullstack Developer",
     description:
       "Personal portfolio of Gilang — a Fullstack Developer building modern, performant, and scalable web applications.",
     images: ["/og-image.png"],
