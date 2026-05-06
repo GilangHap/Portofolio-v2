@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, AlertTriangle, Lightbulb, Rocket, LayoutGrid, Server, Database, Wrench } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertTriangle, Lightbulb, LayoutGrid, Server, Database, Wrench, Code2, ExternalLink } from "lucide-react";
 import { getProjectBySlug } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -47,27 +47,38 @@ export default async function ProjectDetailPage({ params }: Props) {
     notFound();
   }
 
-  // Group skills by category
+  // Group skills by category — keep full objects for logo display
   const techStackGroups = project.skills.reduce((acc: any, skill: any) => {
     const category = skill.category || "Other";
     if (!acc[category]) acc[category] = [];
-    acc[category].push(skill.name);
+    acc[category].push(skill);
     return acc;
   }, {});
 
-  const getIcon = (title: string) => {
+  const getCategoryIcon = (title: string) => {
     const lower = title.toLowerCase();
-    if (lower.includes('front')) return <LayoutGrid className="text-primary mb-4" size={24}/>;
-    if (lower.includes('back')) return <Server className="text-primary mb-4" size={24}/>;
-    if (lower.includes('data')) return <Database className="text-primary mb-4" size={24}/>;
-    return <Wrench className="text-primary mb-4" size={24}/>;
+    if (lower.includes('front')) return <LayoutGrid className="text-primary" size={16}/>;
+    if (lower.includes('back')) return <Server className="text-primary" size={16}/>;
+    if (lower.includes('data')) return <Database className="text-primary" size={16}/>;
+    return <Wrench className="text-primary" size={16}/>;
   };
 
   return (
     <article className="pb-24 bg-background min-h-screen">
       <ProjectJsonLd project={project} />
       {/* Hero Header */}
-      <header className="relative pt-32 pb-20 border-b border-border bg-surface/30">
+      <header
+        className="relative pt-32 pb-20 border-b border-border overflow-hidden"
+        style={
+          project.thumbnail_url
+            ? {
+                backgroundImage: `linear-gradient(120deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.2) 60%, rgba(10,10,10,0.6) 100%), url(${project.thumbnail_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/#projects" className="inline-flex items-center text-sm font-medium text-text-secondary hover:text-primary transition-colors mb-8">
             <ArrowLeft size={16} className="mr-2" />
@@ -78,9 +89,35 @@ export default async function ProjectDetailPage({ params }: Props) {
             <div className="h-px w-12 bg-primary"></div>
           </div>
           <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">{project.title}</h1>
-          <p className="text-xl text-text-secondary max-w-3xl leading-relaxed">
+          <p className="text-xl text-text-secondary max-w-3xl leading-relaxed mb-8">
             {project.short_description}
           </p>
+          {(project.github_url || project.live_url) && (
+            <div className="flex flex-wrap gap-3">
+              {project.github_url && (
+                <a
+                  href={project.github_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface border border-border text-text-primary font-bold rounded hover:border-primary transition-colors text-sm"
+                >
+                  <Code2 size={16} />
+                  View on GitHub
+                </a>
+              )}
+              {project.live_url && (
+                <a
+                  href={project.live_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-black font-bold rounded hover:bg-primary-muted transition-colors text-sm"
+                >
+                  <ExternalLink size={16} />
+                  Live Demo
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -135,19 +172,33 @@ export default async function ProjectDetailPage({ params }: Props) {
           <FadeInSection delay={0.1}>
             <section>
               <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">Tech Stack</h2>
-              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Object.entries(techStackGroups).map(([category, items]: [string, any]) => (
                   <StaggerItem key={category}>
-                    <div className="bg-surface border border-border p-6 rounded-lg hover:border-primary/50 transition-colors">
-                      {getIcon(category)}
-                      <h3 className="font-bold mb-4">{category}</h3>
-                      <ul className="space-y-2">
-                        {items.map((tech: string) => (
-                          <li key={tech} className="text-sm text-text-secondary flex items-center before:content-['▹'] before:mr-2 before:text-primary">
-                            {tech}
-                          </li>
+                    <div className="bg-surface border border-border p-6 rounded-lg hover:border-primary/50 transition-colors h-full">
+                      <div className="flex items-center gap-2 mb-4">
+                        {getCategoryIcon(category)}
+                        <h3 className="font-bold text-sm uppercase tracking-wider text-text-secondary">{category}</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {items.map((skill: any) => (
+                          <span
+                            key={skill.name}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-background border border-border rounded-full text-xs font-medium text-text-primary hover:border-primary/50 transition-colors"
+                          >
+                            {skill.icon_url ? (
+                              <Image
+                                src={skill.icon_url}
+                                alt={skill.name}
+                                width={16}
+                                height={16}
+                                className="object-contain"
+                              />
+                            ) : null}
+                            {skill.name}
+                          </span>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   </StaggerItem>
                 ))}
@@ -173,7 +224,36 @@ export default async function ProjectDetailPage({ params }: Props) {
           </FadeInSection>
         )}
 
-        {/* 04 Key Features */}
+        {/* 04 Screenshots */}
+        {project.screenshots?.filter((s: any) => s.image_url).length > 0 && (
+          <FadeInSection>
+            <section>
+              <h2 className="text-3xl font-black uppercase tracking-tighter mb-8">Screenshots</h2>
+              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {project.screenshots.filter((s: any) => s.image_url).map((shot: any, i: number) => (
+                  <StaggerItem key={i}>
+                    <div className="rounded-lg overflow-hidden border border-border bg-surface group">
+                      <div className="relative aspect-video">
+                        <Image
+                          src={shot.image_url}
+                          alt={shot.caption || `Screenshot ${i + 1}`}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, 50vw"
+                        />
+                      </div>
+                      {shot.caption && (
+                        <p className="text-sm text-text-secondary px-4 py-3 border-t border-border">{shot.caption}</p>
+                      )}
+                    </div>
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
+            </section>
+          </FadeInSection>
+        )}
+
+        {/* 05 Key Features */}
         {project.features?.length > 0 && (
           <FadeInSection>
             <section>

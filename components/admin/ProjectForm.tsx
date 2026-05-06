@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, Search, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import ImageUploader from "./ImageUploader";
 import { saveProject } from "@/app/actions/projects";
+import { getSkills } from "@/app/actions/skills";
 
 interface ProjectFormProps {
   initialData?: any; // To be typed properly later
@@ -40,14 +42,20 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
     arch_image_url: initialData?.arch_image_url || "",
   });
 
-  // Repeater Fields
-  const [techStack, setTechStack] = useState<string[]>(initialData?.techStack || []);
-  const [techInput, setTechInput] = useState("");
+  // Skills multi-select
+  const [allSkills, setAllSkills] = useState<any[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>(initialData?.selectedSkillIds || []);
+  const [skillSearch, setSkillSearch] = useState("");
+
+  useEffect(() => {
+    getSkills().then(setAllSkills);
+  }, []);
 
   const [features, setFeatures] = useState<{title: string, description: string}[]>(initialData?.features || []);
   const [challenges, setChallenges] = useState<string[]>(initialData?.challenges || []);
   const [solutions, setSolutions] = useState<string[]>(initialData?.solutions || []);
   const [metrics, setMetrics] = useState<{label: string, value: string}[]>(initialData?.metrics || []);
+  const [screenshots, setScreenshots] = useState<{image_url: string, caption: string}[]>(initialData?.screenshots || []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -59,15 +67,10 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
     }
   };
 
-  const handleAddTech = () => {
-    if (techInput.trim() && !techStack.includes(techInput.trim())) {
-      setTechStack([...techStack, techInput.trim()]);
-      setTechInput("");
-    }
-  };
-
-  const removeTech = (techToRemove: string) => {
-    setTechStack(techStack.filter(t => t !== techToRemove));
+  const toggleSkill = (id: string) => {
+    setSelectedSkillIds(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
   };
 
   // Generic Repeater Add/Remove
@@ -103,17 +106,26 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
   };
   const removeMetric = (index: number) => setMetrics(metrics.filter((_, i) => i !== index));
 
+  const addScreenshot = (url: string) => setScreenshots(prev => [...prev, { image_url: url, caption: '' }]);
+  const updateScreenshotCaption = (index: number, caption: string) => {
+    const next = [...screenshots];
+    next[index] = { ...next[index], caption };
+    setScreenshots(next);
+  };
+  const removeScreenshot = (index: number) => setScreenshots(screenshots.filter((_, i) => i !== index));
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const payload = {
         ...formData,
-        techStack,
+        selectedSkillIds,
         features,
         challenges,
         solutions,
-        metrics
+        metrics,
+        screenshots,
       };
       await saveProject(projectId || null, payload);
       alert("Project Saved!");
@@ -149,6 +161,11 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
             <input type="text" name="number" value={formData.number} onChange={handleChange} className="w-full px-4 py-2 bg-background border border-border rounded text-text-primary focus:border-primary" />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-2">Year</label>
+            <input type="number" name="year" value={formData.year} onChange={handleChange} className="w-full px-4 py-2 bg-background border border-border rounded text-text-primary focus:border-primary" />
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-text-secondary mb-2">Short Description</label>
             <textarea name="short_description" value={formData.short_description} onChange={handleChange} rows={2} className="w-full px-4 py-2 bg-background border border-border rounded text-text-primary focus:border-primary"></textarea>
@@ -163,6 +180,13 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
             />
           </div>
 
+          <div className="md:col-span-2 flex items-center gap-8 py-2">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" name="is_featured" checked={formData.is_featured} onChange={handleChange} className="w-4 h-4 accent-primary" />
+              <span className="text-sm font-medium text-text-secondary">Featured on home page</span>
+            </label>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-2">GitHub URL</label>
             <input type="url" name="github_url" value={formData.github_url} onChange={handleChange} className="w-full px-4 py-2 bg-background border border-border rounded text-text-primary focus:border-primary" />
@@ -174,27 +198,84 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
           </div>
         </div>
 
-        {/* Tech Stack Mini Manager */}
+        {/* Tech Stack — multi-select from Skill table */}
         <div className="mt-6">
-          <label className="block text-sm font-medium text-text-secondary mb-2">Tech Stack</label>
-          <div className="flex gap-2 mb-3">
-            <input 
-              type="text" 
-              value={techInput}
-              onChange={(e) => setTechInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTech())}
-              placeholder="Add tech (e.g. Next.js)"
-              className="flex-1 px-4 py-2 bg-background border border-border rounded text-text-primary focus:border-primary" 
-            />
-            <button type="button" onClick={handleAddTech} className="px-4 py-2 bg-surface border border-border rounded hover:border-primary text-text-primary">Add</button>
+          <div className="flex items-center justify-between mb-3">
+            <label className="text-sm font-medium text-text-secondary">Tech Stack</label>
+            <span className="text-xs text-text-secondary">{selectedSkillIds.length} selected</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {techStack.map(tech => (
-              <span key={tech} className="px-3 py-1 bg-background border border-border text-xs rounded flex items-center gap-2">
-                {tech}
-                <button type="button" onClick={() => removeTech(tech)} className="text-red-400 hover:text-red-300">&times;</button>
-              </span>
+
+          {/* Selected badges */}
+          {selectedSkillIds.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4 p-3 bg-background border border-border rounded">
+              {allSkills.filter(s => selectedSkillIds.includes(s.id)).map(skill => (
+                <span key={skill.id} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 border border-primary/30 text-primary text-xs rounded-full font-medium">
+                  {skill.icon_url && (
+                    <Image src={skill.icon_url} alt={skill.name} width={14} height={14} className="object-contain" />
+                  )}
+                  {skill.name}
+                  <button type="button" onClick={() => toggleSkill(skill.id)} className="hover:text-red-400 ml-0.5">
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Search */}
+          <div className="relative mb-3">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary" />
+            <input
+              type="text"
+              value={skillSearch}
+              onChange={e => setSkillSearch(e.target.value)}
+              placeholder="Search skills..."
+              className="w-full pl-8 pr-4 py-2 bg-background border border-border rounded text-text-primary text-sm focus:border-primary"
+            />
+          </div>
+
+          {/* Skill list grouped by category */}
+          <div className="border border-border rounded max-h-64 overflow-y-auto divide-y divide-border">
+            {Object.entries(
+              allSkills
+                .filter(s => s.name.toLowerCase().includes(skillSearch.toLowerCase()))
+                .reduce((acc: any, skill: any) => {
+                  const cat = skill.category || "Other";
+                  if (!acc[cat]) acc[cat] = [];
+                  acc[cat].push(skill);
+                  return acc;
+                }, {})
+            ).map(([category, skills]: [string, any]) => (
+              <div key={category}>
+                <div className="px-3 py-1.5 bg-background/60 text-xs font-bold text-text-secondary uppercase tracking-wider sticky top-0">{category}</div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 p-2">
+                  {skills.map((skill: any) => {
+                    const selected = selectedSkillIds.includes(skill.id);
+                    return (
+                      <button
+                        key={skill.id}
+                        type="button"
+                        onClick={() => toggleSkill(skill.id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded text-xs font-medium transition-colors text-left ${
+                          selected
+                            ? 'bg-primary/15 border border-primary/40 text-primary'
+                            : 'bg-background border border-border text-text-secondary hover:border-primary/40'
+                        }`}
+                      >
+                        {skill.icon_url && (
+                          <Image src={skill.icon_url} alt={skill.name} width={16} height={16} className="object-contain shrink-0" />
+                        )}
+                        <span className="truncate">{skill.name}</span>
+                        {selected && <X size={10} className="ml-auto shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             ))}
+            {allSkills.filter(s => s.name.toLowerCase().includes(skillSearch.toLowerCase())).length === 0 && (
+              <p className="p-4 text-sm text-text-secondary text-center">No skills found.</p>
+            )}
           </div>
         </div>
       </section>
@@ -324,6 +405,61 @@ export default function ProjectForm({ initialData, projectId = null }: ProjectFo
               <button type="button" onClick={() => removeMetric(i)} className="p-2 text-red-400 hover:bg-red-400/10 rounded"><Trash2 size={18} /></button>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* 6. Screenshots */}
+      <section className="bg-surface border border-border rounded-xl p-8 shadow-sm">
+        <div className="flex justify-between items-center border-b border-border pb-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-text-primary">Screenshots / Gallery</h2>
+            <p className="text-sm text-text-secondary mt-1">Upload project screenshots shown in the gallery section.</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {screenshots.map((shot, i) => (
+            <div key={i} className="flex gap-4 items-start bg-background p-4 border border-border rounded">
+              <div className="w-32 shrink-0">
+                <ImageUploader
+                  currentImage={shot.image_url}
+                  onUpload={(url) => {
+                    const next = [...screenshots];
+                    next[i] = { ...next[i], image_url: url };
+                    setScreenshots(next);
+                  }}
+                  bucket="projects"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-text-secondary mb-1">Caption (optional)</label>
+                <input
+                  type="text"
+                  value={shot.caption}
+                  onChange={(e) => updateScreenshotCaption(i, e.target.value)}
+                  placeholder="e.g. Dashboard overview"
+                  className="w-full px-4 py-2 bg-surface border border-border rounded focus:border-primary text-text-primary text-sm"
+                />
+              </div>
+              <button type="button" onClick={() => removeScreenshot(i)} className="p-2 text-red-400 hover:bg-red-400/10 rounded mt-1">
+                <Trash2 size={18} />
+              </button>
+            </div>
+          ))}
+
+          {/* Upload new screenshot */}
+          <div className="border-2 border-dashed border-border rounded-lg p-4">
+            <p className="text-sm text-text-secondary mb-3">Add a new screenshot:</p>
+            <ImageUploader
+              currentImage=""
+              onUpload={(url) => addScreenshot(url)}
+              bucket="projects"
+            />
+          </div>
+
+          {screenshots.length === 0 && (
+            <p className="text-text-secondary text-sm">No screenshots added yet.</p>
+          )}
         </div>
       </section>
 

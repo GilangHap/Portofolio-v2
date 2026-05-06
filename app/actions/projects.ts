@@ -25,7 +25,7 @@ export async function getProjects() {
 export async function getProjectBySlug(slug: string) {
   const { data, error } = await supabase
     .from('Project')
-    .select('*, ProjectFeature(*), ProjectChallenge(*), ProjectSolution(*), ProjectMetric(*), ProjectSkill(Skill(*))')
+    .select('*, ProjectFeature(*), ProjectChallenge(*), ProjectSolution(*), ProjectMetric(*), ProjectSkill(Skill(*)), ProjectScreenshot(*)')
     .eq('slug', slug)
     .maybeSingle();
     
@@ -42,28 +42,34 @@ export async function getProjectBySlug(slug: string) {
   if (data) {
     return {
       ...data,
-      features: data.ProjectFeature || [],
-      challenges: (data.ProjectChallenge || []).map((c: any) => c.content),
-      solutions: (data.ProjectSolution || []).map((s: any) => s.content),
-      metrics: data.ProjectMetric || [],
-      skills: (data.ProjectSkill || []).map((ps: any) => ps.Skill).filter(Boolean)
+      features: (data.ProjectFeature || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      challenges: (data.ProjectChallenge || []).sort((a: any, b: any) => a.order_index - b.order_index).map((c: any) => c.content),
+      solutions: (data.ProjectSolution || []).sort((a: any, b: any) => a.order_index - b.order_index).map((s: any) => s.content),
+      metrics: (data.ProjectMetric || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      skills: (data.ProjectSkill || []).map((ps: any) => ps.Skill).filter(Boolean),
+      screenshots: (data.ProjectScreenshot || []).sort((a: any, b: any) => a.order_index - b.order_index),
     };
   }
   return null;
 }
 
 export async function getProjectById(id: string) {
-  const { data, error } = await supabase.from('Project').select('*, ProjectFeature(*), ProjectChallenge(*), ProjectSolution(*), ProjectMetric(*)').eq('id', id).single();
+  const { data, error } = await supabase
+    .from('Project')
+    .select('*, ProjectFeature(*), ProjectChallenge(*), ProjectSolution(*), ProjectMetric(*), ProjectScreenshot(*), ProjectSkill(skill_id, Skill(*))')
+    .eq('id', id)
+    .single();
   if (error) console.error("Error fetching project:", error);
   
   if (data) {
-    // Map related tables back to arrays for the form
     return {
       ...data,
-      features: data.ProjectFeature || [],
-      challenges: (data.ProjectChallenge || []).map((c: any) => c.content),
-      solutions: (data.ProjectSolution || []).map((s: any) => s.content),
-      impact_metrics: data.ProjectMetric || []
+      features: (data.ProjectFeature || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      challenges: (data.ProjectChallenge || []).sort((a: any, b: any) => a.order_index - b.order_index).map((c: any) => c.content),
+      solutions: (data.ProjectSolution || []).sort((a: any, b: any) => a.order_index - b.order_index).map((s: any) => s.content),
+      metrics: (data.ProjectMetric || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      screenshots: (data.ProjectScreenshot || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      selectedSkillIds: (data.ProjectSkill || []).map((ps: any) => ps.skill_id).filter(Boolean),
     };
   }
   return data;
@@ -120,6 +126,7 @@ export async function saveProject(id: string | null, formData: any) {
       supabase.from('ProjectChallenge').delete().eq('project_id', projectId),
       supabase.from('ProjectSolution').delete().eq('project_id', projectId),
       supabase.from('ProjectMetric').delete().eq('project_id', projectId),
+      supabase.from('ProjectScreenshot').delete().eq('project_id', projectId),
     ]);
   }
 
@@ -128,12 +135,21 @@ export async function saveProject(id: string | null, formData: any) {
   const challenges = (formData.challenges || []).map((c: string, i: number) => ({ id: crypto.randomUUID(), project_id: projectId, content: c, order_index: i }));
   const solutions = (formData.solutions || []).map((s: string, i: number) => ({ id: crypto.randomUUID(), project_id: projectId, content: s, order_index: i }));
   const metrics = (formData.metrics || []).map((m: any, i: number) => ({ id: crypto.randomUUID(), project_id: projectId, label: m.label, value: m.value, order_index: i }));
+  const screenshots = (formData.screenshots || []).map((s: any, i: number) => ({ id: crypto.randomUUID(), project_id: projectId, image_url: s.image_url, caption: s.caption || '', order_index: i }));
+
+  // ProjectSkill (many-to-many)
+  if (id) {
+    await supabase.from('ProjectSkill').delete().eq('project_id', projectId);
+  }
+  const projectSkills = (formData.selectedSkillIds || []).map((skillId: string) => ({ project_id: projectId, skill_id: skillId }));
 
   await Promise.all([
     features.length > 0 ? supabase.from('ProjectFeature').insert(features) : Promise.resolve(),
     challenges.length > 0 ? supabase.from('ProjectChallenge').insert(challenges) : Promise.resolve(),
     solutions.length > 0 ? supabase.from('ProjectSolution').insert(solutions) : Promise.resolve(),
-    metrics.length > 0 ? supabase.from('ProjectMetric').insert(metrics) : Promise.resolve()
+    metrics.length > 0 ? supabase.from('ProjectMetric').insert(metrics) : Promise.resolve(),
+    screenshots.length > 0 ? supabase.from('ProjectScreenshot').insert(screenshots) : Promise.resolve(),
+    projectSkills.length > 0 ? supabase.from('ProjectSkill').insert(projectSkills) : Promise.resolve(),
   ]);
 
   revalidatePath('/admin/projects');

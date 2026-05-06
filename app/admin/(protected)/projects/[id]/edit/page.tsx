@@ -12,14 +12,14 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
     notFound();
   }
 
-  // Map database format to form format
   const mappedData = {
     ...project,
-    techStack: project.tech_stack || [],
+    selectedSkillIds: project.selectedSkillIds || [],
     features: project.features || [],
     challenges: project.challenges || [],
     solutions: project.solutions || [],
-    metrics: project.impact_metrics || []
+    metrics: project.metrics || [],
+    screenshots: project.screenshots || [],
   };
 
   return (
