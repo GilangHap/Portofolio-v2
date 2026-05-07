@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, AlertTriangle, Lightbulb, LayoutGrid, Server, Database, Wrench, Code2, ExternalLink } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertTriangle, Lightbulb, LayoutGrid, Server, Database, Wrench, ExternalLink } from "lucide-react";
 import { getProjectBySlug } from "@/app/actions/projects";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
@@ -10,6 +10,12 @@ import { FadeInSection, ScaleInCard, StaggerContainer, StaggerItem } from "@/com
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor" {...props}>
+    <path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.42 7.86 10.95.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.55-3.88-1.55-.53-1.35-1.29-1.71-1.29-1.71-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.29-5.23-5.73 0-1.26.45-2.3 1.19-3.11-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.19.92-.26 1.91-.39 2.9-.39.98 0 1.98.13 2.9.39 2.2-1.5 3.17-1.19 3.17-1.19.63 1.59.23 2.76.11 3.05.74.81 1.19 1.85 1.19 3.11 0 4.45-2.69 5.43-5.25 5.71.41.36.78 1.07.78 2.16 0 1.56-.01 2.82-.01 3.2 0 .31.21.68.8.56 4.57-1.53 7.86-5.85 7.86-10.95C23.5 5.74 18.27.5 12 .5z" />
+  </svg>
+);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -68,56 +74,69 @@ export default async function ProjectDetailPage({ params }: Props) {
       <ProjectJsonLd project={project} />
       {/* Hero Header */}
       <header
-        className="relative pt-32 pb-20 border-b border-border overflow-hidden"
+        className="relative pt-24 pb-12 border-b border-border overflow-hidden"
         style={
           project.thumbnail_url
             ? {
-                backgroundImage: `linear-gradient(120deg, rgba(10,10,10,0.8) 0%, rgba(10,10,10,0.2) 60%, rgba(10,10,10,0.6) 100%), url(${project.thumbnail_url})`,
+                backgroundImage: `linear-gradient(120deg, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.6) 35%, rgba(10,10,10,0.05) 65%, rgba(10,10,10,0.9) 100%), url(${project.thumbnail_url})`,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: "center 45%",
               }
             : undefined
         }
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/#projects" className="inline-flex items-center text-sm font-medium text-text-secondary hover:text-primary transition-colors mb-8">
-            <ArrowLeft size={16} className="mr-2" />
-            Back to Projects
-          </Link>
-          <div className="flex items-center space-x-4 mb-6">
-            <span className="text-primary font-mono text-xl">{project.number || "00"}</span>
-            <div className="h-px w-12 bg-primary"></div>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter mb-6">{project.title}</h1>
-          <p className="text-xl text-text-secondary max-w-3xl leading-relaxed mb-8">
-            {project.short_description}
-          </p>
-          {(project.github_url || project.live_url) && (
-            <div className="flex flex-wrap gap-3">
-              {project.github_url && (
-                <a
-                  href={project.github_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface border border-border text-text-primary font-bold rounded hover:border-primary transition-colors text-sm"
-                >
-                  <Code2 size={16} />
-                  View on GitHub
-                </a>
-              )}
-              {project.live_url && (
-                <a
-                  href={project.live_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-black font-bold rounded hover:bg-primary-muted transition-colors text-sm"
-                >
-                  <ExternalLink size={16} />
-                  Live Demo
-                </a>
-              )}
+        <div className="absolute inset-0 pointer-events-none opacity-80">
+          <div className="absolute -bottom-16 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-primary/40 blur-3xl" />
+          <div className="absolute -bottom-10 right-12 h-48 w-48 rounded-full bg-[#39FF14]/40 blur-[180px]" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
+          <div className="relative grid gap-10 lg:grid-cols-2">
+            <div className="space-y-4 lg:-mt-6">
+              
+              <div className="flex items-center gap-3 text-xs uppercase tracking-widest font-bold text-text-secondary">
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/60 border border-border text-[10px]">
+                  <span className="text-primary">
+                    {project.number !== undefined && project.number !== null
+                      ? String(project.number).padStart(2, "0")
+                      : "01"}
+                  </span>
+                  Featured Project
+                </span>
+                <span className="flex-1 h-px bg-border" />
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tight text-white">
+                {project.title}
+              </h1>
+              <p className="text-lg text-text-secondary max-w-3xl leading-relaxed">
+                {project.short_description}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {project.live_url && (
+                  <a
+                    href={project.live_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-full bg-linear-to-r from-[#39FF14] to-[#2CC468] text-black shadow-[0_15px_50px_rgba(57,255,20,0.45)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(57,255,20,0.6)]"
+                  >
+                    <ExternalLink size={16} />
+                    Live Demo
+                  </a>
+                )}
+                {project.github_url && (
+                  <a
+                    href={project.github_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-6 py-3 text-sm font-bold rounded-full border border-primary text-text-primary transition-all duration-200 hover:-translate-y-1 hover:bg-primary/10 hover:shadow-[0_12px_30px_rgba(57,255,20,0.25)]"
+                  >
+                    <GithubIcon className="h-4 w-4" />
+                    GitHub
+                  </a>
+                )}
+              </div>
             </div>
-          )}
+
+          </div>
         </div>
       </header>
 
