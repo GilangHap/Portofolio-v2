@@ -40,7 +40,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="mb-6 md:mb-0 text-center md:text-left">
             <Link href="/" className="text-2xl font-black text-primary uppercase tracking-tighter inline-block mb-2">
-              GH.
+              GILANGHAP.
             </Link>
             <p className="text-text-secondary max-w-sm">
               Fullstack Developer building modern, performant, and scalable web applications.
@@ -69,7 +69,7 @@ export default function Footer() {
         </div>
         
         <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center text-sm text-text-secondary">
-          <p>&copy; {currentYear} GH. All rights reserved.</p>
+          <p>&copy; {currentYear} GILANGHAP. All rights reserved.</p>
           <p className="mt-2 md:mt-0">
             Built with Next.js & Tailwind CSS
           </p>

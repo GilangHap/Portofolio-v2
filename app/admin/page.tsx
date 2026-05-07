@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-surface border border-border rounded-xl p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-primary uppercase tracking-tighter mb-2">GH. Admin</h1>
+          <h1 className="text-3xl font-black text-primary uppercase tracking-tighter mb-2">GILANGHAP. Admin</h1>
           <p className="text-text-secondary text-sm">Sign in to manage your portfolio</p>
         </div>
 

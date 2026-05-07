@@ -47,7 +47,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="shrink-0 flex items-center gap-4">
             <Link href="/" className="text-2xl font-black text-primary uppercase tracking-tighter">
-              GILANG.
+              GILANGHAP.
             </Link>
             {about?.availability && (
               <span className="hidden sm:flex items-center gap-2 text-xs font-medium text-text-secondary border border-border rounded-full px-3 py-1">
