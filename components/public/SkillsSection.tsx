@@ -1,49 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { getSkills } from "@/app/actions/skills";
-import { Loader2 } from "lucide-react";
 
-export default function SkillsSection() {
-  const [skills, setSkills] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function SkillsSection({ skills = [] }: { skills?: any[] }) {
   const [activeCategory, setActiveCategory] = useState("All");
-  const [categories, setCategories] = useState(["All"]);
-
-  useEffect(() => {
-    async function fetchSkills() {
-      try {
-        const data = await getSkills();
-        setSkills(data);
-        
-        // Derive categories
-        const cats = ["All", ...Array.from(new Set(data.map((s: any) => s.category))) as string[]];
-        setCategories(cats);
-      } catch (error) {
-        console.error("Failed to fetch skills:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSkills();
-  }, []);
+  const categories = [
+    "All",
+    ...Array.from(new Set(skills.map((s: any) => s.category).filter(Boolean))) as string[],
+  ];
 
   const filteredSkills = activeCategory === "All" 
     ? skills 
     : skills.filter(s => s.category === activeCategory);
-
-  if (loading) {
-    return (
-      <section id="skills" className="py-24 bg-surface/50 border-y border-border">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-75">
-          <Loader2 className="animate-spin text-primary" size={40} />
-        </div>
-      </section>
-    );
-  }
 
   if (skills.length === 0) return null;
 

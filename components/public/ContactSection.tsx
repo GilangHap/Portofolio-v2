@@ -1,11 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Send, CheckCircle2, AlertCircle, Loader2, ExternalLink, MessageSquare, MapPin, Phone } from "lucide-react";
 import { GithubIcon, LinkedinIcon, InstagramIcon, TwitterIcon } from "@/components/BrandIcons";
-import { getSocialLinks } from "@/app/actions/contact";
-import { getAbout } from "@/app/actions/about";
 
 const ICON_MAP: Record<string, any> = {
   github: GithubIcon,
@@ -25,17 +23,16 @@ const getIcon = (platform: string) => {
   return ExternalLink;
 };
 
-export default function ContactSection() {
-  const [socialLinks, setSocialLinks] = useState<any[]>([]);
-  const [about, setAbout] = useState<any>(null);
+export default function ContactSection({
+  socialLinks = [],
+  about,
+}: {
+  socialLinks?: any[];
+  about: any;
+}) {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
-
-  useEffect(() => {
-    getSocialLinks().then(setSocialLinks).catch(() => {});
-    getAbout().then(setAbout).catch(() => {});
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -103,7 +100,7 @@ export default function ContactSection() {
             {/* Quick info cards */}
             <div className="space-y-4">
               <div className="flex items-center gap-4 p-4 bg-surface border border-border rounded-lg group hover:border-primary/40 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <MessageSquare size={18} className="text-primary" />
                 </div>
                 <div>
@@ -115,7 +112,7 @@ export default function ContactSection() {
               </div>
 
               <div className="flex items-center gap-4 p-4 bg-surface border border-border rounded-lg group hover:border-primary/40 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <MapPin size={18} className="text-primary" />
                 </div>
                 <div>
@@ -125,7 +122,7 @@ export default function ContactSection() {
               </div>
 
               <div className="flex items-center gap-4 p-4 bg-surface border border-border rounded-lg group hover:border-primary/40 transition-colors">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Mail size={18} className="text-primary" />
                 </div>
                 <div>
@@ -148,7 +145,7 @@ export default function ContactSection() {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-surface border border-border rounded-lg text-sm font-medium text-text-secondary hover:text-text-primary hover:border-primary/50 hover:bg-primary/5 transition-colors"
                       >
                         <Icon size={16} />
                         <span>{link.platform}</span>
@@ -184,7 +181,7 @@ export default function ContactSection() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="h-full min-h-[400px] bg-surface border border-primary/30 rounded-xl p-10 flex flex-col items-center justify-center text-center"
+                  className="h-full min-h-100 bg-surface border border-primary/30 rounded-xl p-10 flex flex-col items-center justify-center text-center"
                 >
                   <motion.div
                     initial={{ scale: 0 }}
@@ -278,7 +275,7 @@ export default function ContactSection() {
                       animate={{ opacity: 1, y: 0 }}
                       className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm"
                     >
-                      <AlertCircle size={16} className="flex-shrink-0" />
+                      <AlertCircle size={16} className="shrink-0" />
                       <span>{errorMsg}</span>
                     </motion.div>
                   )}

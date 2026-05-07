@@ -1,38 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Code2, FolderGit2, Blocks, Zap, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getAbout } from "@/app/actions/about";
+import { Code2, FolderGit2, Blocks, Zap } from "lucide-react";
 
-export default function AboutSection() {
-  const [about, setAbout] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchAbout() {
-      try {
-        const data = await getAbout();
-        setAbout(data);
-      } catch (error) {
-        console.error("Failed to fetch about data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAbout();
-  }, []);
-
-  if (loading) {
-    return (
-      <section id="about" className="py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 flex justify-center">
-          <Loader2 className="animate-spin text-primary" size={40} />
-        </div>
-      </section>
-    );
-  }
-
+export default function AboutSection({ about }: { about: any }) {
   const stats = [
     { label: "Years Coding", value: about?.stat_years || "0", icon: <Code2 size={24} /> },
     { label: "Projects Built", value: about?.stat_projects || "0", icon: <FolderGit2 size={24} /> },

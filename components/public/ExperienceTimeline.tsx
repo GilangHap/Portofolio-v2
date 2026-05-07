@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Briefcase, GraduationCap, Award, Code, Star, Building2, Trophy, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getExperiences } from "@/app/actions/experience";
+import { Briefcase, GraduationCap, Award, Code, Star, Building2, Trophy } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Briefcase,
@@ -15,34 +13,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Trophy,
 };
 
-export default function ExperienceTimeline() {
-  const [experiences, setExperiences] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchExperiences() {
-      try {
-        const data = await getExperiences();
-        setExperiences(data);
-      } catch (error) {
-        console.error("Failed to fetch experiences:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchExperiences();
-  }, []);
-
-  if (loading) {
-    return (
-      <section id="experience" className="py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 flex justify-center py-20">
-          <Loader2 className="animate-spin text-primary" size={40} />
-        </div>
-      </section>
-    );
-  }
-
+export default function ExperienceTimeline({ experiences = [] }: { experiences?: any[] }) {
   if (experiences.length === 0) return null;
 
   return (

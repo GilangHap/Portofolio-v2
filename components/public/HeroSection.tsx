@@ -1,37 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowDown, Download, Mail, Loader2 } from "lucide-react";
+import { ArrowDown, Download, Mail } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { getAbout } from "@/app/actions/about";
 
-export default function HeroSection() {
-  const [about, setAbout] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchAbout() {
-      try {
-        const data = await getAbout();
-        setAbout(data);
-      } catch (error) {
-        console.error("Failed to fetch about data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchAbout();
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="relative min-h-[calc(100vh-4rem)] flex justify-center items-center">
-        <Loader2 className="animate-spin text-primary" size={40} />
-      </section>
-    );
-  }
-
+export default function HeroSection({ about }: { about: any }) {
   return (
     <section className="relative min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-hidden">
       {/* Background Neon Glow */}

@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { GithubIcon } from "@/components/BrandIcons";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
-import { getProjects } from "@/app/actions/projects";
+import { useMemo, useState } from "react";
 
 function FeaturedProjectCard({ project, index }: { project: any; index: number }) {
   const isEven = index % 2 === 1;
@@ -24,7 +23,7 @@ function FeaturedProjectCard({ project, index }: { project: any; index: number }
       )}
     >
       {/* Image Section */}
-      <div className="relative w-full lg:w-1/2 min-h-[300px] lg:min-h-[auto] bg-[#111]">
+      <div className="relative w-full lg:w-1/2 min-h-75 lg:min-h-auto bg-[#111]">
         {project.thumbnail_url ? (
           <Image
             src={project.thumbnail_url}
@@ -70,7 +69,7 @@ function FeaturedProjectCard({ project, index }: { project: any; index: number }
         <div className="flex flex-col gap-3 shrink-0 sm:pt-12">
           <Link 
             href={`/projects/${project.slug}`}
-            className="flex items-center justify-between w-[140px] px-4 py-2 border border-primary text-primary hover:bg-primary/10 transition-colors rounded text-sm font-medium"
+            className="flex items-center justify-between w-35 px-4 py-2 border border-primary text-primary hover:bg-primary/10 transition-colors rounded text-sm font-medium"
           >
             View Details
             <ArrowUpRight size={16} />
@@ -81,7 +80,7 @@ function FeaturedProjectCard({ project, index }: { project: any; index: number }
               href={project.github_url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center justify-between w-[140px] px-4 py-2 border border-border text-text-primary hover:border-text-primary transition-colors rounded text-sm font-medium"
+              className="flex items-center justify-between w-35 px-4 py-2 border border-border text-text-primary hover:border-text-primary transition-colors rounded text-sm font-medium"
             >
               GitHub
               <GithubIcon size={16} />
@@ -93,43 +92,19 @@ function FeaturedProjectCard({ project, index }: { project: any; index: number }
   );
 }
 
-export default function FeaturedProjectsSection() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function FeaturedProjectsSection({ projects = [] }: { projects?: any[] }) {
   const [visibleCount, setVisibleCount] = useState(3);
 
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        const data = await getProjects();
-        // Sort by is_featured first
-        const sorted = [...data].sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-        setProjects(sorted);
-      } catch (error) {
-        console.error("Failed to fetch projects:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProjects();
-  }, []);
+  const sortedProjects = useMemo(
+    () => [...projects].sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0)),
+    [projects]
+  );
 
   const handleLoadMore = () => {
     setVisibleCount(prev => Math.min(prev + 3, projects.length));
   };
 
-  if (loading) {
-    return (
-      <section id="projects" className="py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center min-h-[400px]">
-          <Loader2 className="animate-spin text-primary mb-4" size={40} />
-          <p className="text-text-secondary">Loading projects...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (projects.length === 0) return null;
+  if (sortedProjects.length === 0) return null;
 
   return (
     <section id="projects" className="py-24 bg-background">
@@ -153,14 +128,14 @@ export default function FeaturedProjectsSection() {
         {/* Projects List */}
         <div className="space-y-6">
           <AnimatePresence>
-            {projects.slice(0, visibleCount).map((project, index) => (
+            {sortedProjects.slice(0, visibleCount).map((project, index) => (
               <FeaturedProjectCard key={project.id} project={project} index={index} />
             ))}
           </AnimatePresence>
         </div>
 
         {/* View More Button */}
-        {visibleCount < projects.length && (
+        {visibleCount < sortedProjects.length && (
           <div className="mt-16 flex justify-center">
             <button 
               onClick={handleLoadMore}
