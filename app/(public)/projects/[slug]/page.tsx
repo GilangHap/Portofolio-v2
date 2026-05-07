@@ -92,7 +92,10 @@ export default async function ProjectDetailPage({ params }: Props) {
         <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
           <div className="relative grid gap-10 lg:grid-cols-2">
             <div className="space-y-4 lg:-mt-6">
-              
+              <Link href="/#projects" className="inline-flex items-center text-sm font-medium text-text-secondary hover:text-primary transition-colors mb-8">
+            <ArrowLeft size={16} className="mr-2" />
+            Back to Projects
+          </Link>
               <div className="flex items-center gap-3 text-xs uppercase tracking-widest font-bold text-text-secondary">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-background/60 border border-border text-[10px]">
                   <span className="text-primary">
