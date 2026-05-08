@@ -26,6 +26,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  icons: {
+    icon: "/G-min.ico",
+    shortcut: "/G-min.ico",
+  },
   title: {
     default: "Gilang Happy. | Fullstack Developer",
     template: "%s | Gilang Happy.",
